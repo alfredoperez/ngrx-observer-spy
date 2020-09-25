@@ -1,0 +1,87 @@
+{
+  "npmScope": "ngrx",
+  "implicitDependencies": {
+    "angular.json": "*",
+    "package.json": "*",
+    "tslint.json": "*",
+    "nx.json": "*",
+    "tsconfig.base.json": "*"
+  },
+  "workspaceLayout": {
+    "appsDir": "projects",
+    "libsDir": "modules"
+  },
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "@nrwl/nx-cloud",
+      "options": {
+        "accessToken": "NTlmOGIxYmItZjM0OC00YzAxLTgzZTgtZDNiZmExMzcwZTA4fHJlYWQ=",
+        "cacheableOperations": [
+          "build",
+          "build-package",
+          "test",
+          "lint",
+          "e2e"
+        ],
+        "canTrackAnalytics": false,
+        "showUsageWarnings": true
+      }
+    }
+  },
+  "projects": {
+    "example-app": {
+      "tags": []
+    },
+    "store": {
+      "tags": []
+    },
+    "effects": {
+      "tags": []
+    },
+    "data": {
+      "tags": []
+    },
+    "entity": {
+      "tags": []
+    },
+    "store-devtools": {
+      "tags": []
+    },
+    "router-store": {
+      "tags": []
+    },
+    "schematics": {
+      "tags": []
+    },
+    "component": {
+      "tags": []
+    },
+    "component-store": {
+      "tags": []
+    },
+    "example-app-e2e": {
+      "tags": [],
+      "implicitDependencies": ["example-app"]
+    },
+    "docs-app": {
+      "tags": [],
+      "implicitDependencies": [
+        "store",
+        "effects",
+        "router-store",
+        "store-devtools",
+        "entity",
+        "data",
+        "schematics",
+        "component",
+        "component-store"
+      ]
+    },
+    "schematics-core": {
+      "tags": []
+    }
+  },
+  "affected": {
+    "defaultBase": "master"
+  }
+}
