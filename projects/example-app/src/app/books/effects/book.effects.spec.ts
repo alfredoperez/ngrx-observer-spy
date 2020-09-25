@@ -2,8 +2,8 @@ import { TestBed } from '@angular/core/testing';
 
 import { Actions } from '@ngrx/effects';
 import { provideMockActions } from '@ngrx/effects/testing';
-import { cold, getTestScheduler, hot } from 'jasmine-marbles';
-import { Observable } from 'rxjs';
+import { getTestScheduler } from 'jasmine-marbles';
+import { EMPTY, Observable, of, throwError } from 'rxjs';
 
 import {
   BooksApiActions,
@@ -12,6 +12,7 @@ import {
 import { BookEffects } from '@example-app/books/effects';
 import { Book } from '@example-app/books/models';
 import { GoogleBooksService } from '@example-app/core/services';
+import { ObserverSpy } from '@hirez_io/observer-spy';
 
 describe('BookEffects', () => {
   let effects: BookEffects;
@@ -40,54 +41,46 @@ describe('BookEffects', () => {
       const book1 = { id: '111', volumeInfo: {} } as Book;
       const book2 = { id: '222', volumeInfo: {} } as Book;
       const books = [book1, book2];
-      const action = FindBookPageActions.searchBooks({ query: 'query' });
-      const completion = BooksApiActions.searchSuccess({ books });
 
-      actions$ = hot('-a---', { a: action });
-      const response = cold('-a|', { a: books });
-      const expected = cold('-----b', { b: completion });
-      googleBooksService.searchBooks = jest.fn(() => response);
+      actions$ = of(FindBookPageActions.searchBooks({ query: 'query' }));
+      googleBooksService.searchBooks = jest.fn(() => of(books));
 
-      expect(
-        effects.search$({
-          debounce: 30,
-          scheduler: getTestScheduler(),
-        })
-      ).toBeObservable(expected);
+      const observerSpy = new ObserverSpy();
+      effects
+        .search$({ debounce: 30, scheduler: getTestScheduler() })
+        .subscribe(observerSpy);
+
+      expect(observerSpy.getLastValue()).toEqual(
+        BooksApiActions.searchSuccess({ books })
+      );
     });
 
     it('should return a book.SearchError if the books service throws', () => {
-      const action = FindBookPageActions.searchBooks({ query: 'query' });
-      const completion = BooksApiActions.searchFailure({
-        errorMsg: 'Unexpected Error. Try again later.',
-      });
       const error = { message: 'Unexpected Error. Try again later.' };
+      actions$ = of(FindBookPageActions.searchBooks({ query: 'query' }));
+      googleBooksService.searchBooks = jest.fn(() => throwError(error));
 
-      actions$ = hot('-a---', { a: action });
-      const response = cold('-#|', {}, error);
-      const expected = cold('-----b', { b: completion });
-      googleBooksService.searchBooks = jest.fn(() => response);
+      const observerSpy = new ObserverSpy();
+      effects
+        .search$({ debounce: 30, scheduler: getTestScheduler() })
+        .subscribe(observerSpy);
 
-      expect(
-        effects.search$({
-          debounce: 30,
-          scheduler: getTestScheduler(),
+      expect(observerSpy.getLastValue()).toEqual(
+        BooksApiActions.searchFailure({
+          errorMsg: error.message,
         })
-      ).toBeObservable(expected);
+      );
     });
 
     it(`should not do anything if the query is an empty string`, () => {
-      const action = FindBookPageActions.searchBooks({ query: '' });
+      actions$ = of(FindBookPageActions.searchBooks({ query: '' }));
 
-      actions$ = hot('-a---', { a: action });
-      const expected = cold('---');
+      const observerSpy = new ObserverSpy();
+      effects
+        .search$({ debounce: 30, scheduler: getTestScheduler() })
+        .subscribe(observerSpy);
 
-      expect(
-        effects.search$({
-          debounce: 30,
-          scheduler: getTestScheduler(),
-        })
-      ).toBeObservable(expected);
+      expect(observerSpy.getLastValue()).toBeUndefined();
     });
   });
 });
